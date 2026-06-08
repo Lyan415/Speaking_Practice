@@ -14,7 +14,7 @@
 const SPREADSHEET_ID = '1E-_9M4205Z5KC5YUR5hJ9VLXO0TLDKX_cc2Gd3pUAIs';
 const SCRIPT_VERSION = 'v1-speaking-practice-2026-06-08';
 const TIMEZONE = 'Asia/Taipei';
-const DRIVE_FOLDER_ID = ''; // TODO: fill in after creating Drive folder
+const DRIVE_FOLDER_ID = '1ugtYeS7lsoDwtxVR9eFD8f1GlivBcYv6';
 
 const SHEET_USERS = 'Users';
 const SHEET_SENTENCES = 'Sentences';
