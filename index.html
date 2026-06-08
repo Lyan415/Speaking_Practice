@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SpeakingPractice</title>
+  <link rel="stylesheet" href="css/style.css?v=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗣️</text></svg>">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+      <div class="login-container">
+        <div class="login-logo">
+          <div class="logo-icon">S</div>
+          <h1>SpeakingPractice</h1>
+          <p class="login-subtitle">Daily English Speaking Trainer</p>
+        </div>
+
+        <div class="login-pad">
+          <div class="sequence-dots" id="sequence-dots"></div>
+          <div class="pad-buttons">
+            <button class="pad-btn" data-key="1"><span class="pad-shape shape-diamond"></span></button>
+            <button class="pad-btn" data-key="2"><span class="pad-shape shape-circle"></span></button>
+            <button class="pad-btn" data-key="3"><span class="pad-shape shape-triangle"></span></button>
+            <button class="pad-btn" data-key="4"><span class="pad-shape shape-square"></span></button>
+          </div>
+          <div class="pad-actions">
+            <button class="btn btn-text" id="btn-clear">Clear</button>
+            <button class="btn btn-primary" id="btn-login" disabled>Unlock</button>
+          </div>
+          <div id="login-error" class="error-msg hidden"></div>
+        </div>
+
+        <p class="login-footer">Tap the shapes in the correct order</p>
+      </div>
+    </div>
+
+    <!-- Main App (placeholder) -->
+    <div id="main-app" class="screen hidden">
+      <nav id="navbar">
+        <div class="nav-brand">
+          <span class="nav-logo">S</span>
+          <span class="nav-title">SpeakingPractice</span>
+        </div>
+        <div class="nav-actions">
+          <button id="sync-btn" class="btn-icon" title="Sync">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          </button>
+          <button id="settings-btn" class="btn-icon" title="Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+          <button id="logout-btn" class="btn-icon" title="Sign Out">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <main id="content">
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page active">
+          <div class="dashboard-header">
+            <h2>Welcome back!</h2>
+            <p id="dashboard-date"></p>
+          </div>
+          <div class="mode-cards">
+            <div class="mode-card" data-mode="training">
+              <div class="mode-icon">📖</div>
+              <h3>Training Mode</h3>
+              <p>Daily practice with spaced repetition</p>
+            </div>
+            <div class="mode-card" data-mode="add">
+              <div class="mode-icon">➕</div>
+              <h3>Add Sentences</h3>
+              <p>Add new Chinese-English sentence pairs</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Training: Mode Selection -->
+        <div id="page-training" class="page hidden">
+          <div class="page-header">
+            <button class="btn-back" id="training-back-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h2>Training Mode</h2>
+          </div>
+
+          <div id="training-stats" class="training-stats">
+            <div class="train-stat"><span id="train-due-count">0</span><small>Due today</small></div>
+            <div class="train-stat"><span id="train-total-count">0</span><small>Total sentences</small></div>
+            <div class="train-stat"><span id="train-mastered-count">0</span><small>Mastered</small></div>
+          </div>
+
+          <div id="no-sentences-msg" class="empty-msg hidden">
+            <p>No sentences yet. Add some sentences first!</p>
+            <button class="btn btn-primary" id="go-add-btn">Add Sentences</button>
+          </div>
+
+          <div id="training-modes" class="mode-cards">
+            <div class="mode-card" data-train="flashcard">
+              <div class="mode-icon">🃏</div>
+              <h3>Flashcard</h3>
+              <p>See Chinese, reveal English</p>
+            </div>
+            <div class="mode-card" data-train="spelling">
+              <div class="mode-icon">⌨️</div>
+              <h3>Spelling</h3>
+              <p>See Chinese, type English</p>
+            </div>
+            <div class="mode-card" data-train="reading">
+              <div class="mode-icon">🎧</div>
+              <h3>Read Along</h3>
+              <p>Listen and repeat</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Training: Session -->
+        <div id="page-session" class="page hidden">
+          <!-- Progress bar -->
+          <div class="session-progress">
+            <div class="progress-bar"><div class="progress-fill" id="session-progress-fill"></div></div>
+            <div class="progress-text"><span id="session-current">0</span> / <span id="session-total">0</span></div>
+          </div>
+
+          <!-- Flashcard Mode -->
+          <div id="session-flashcard" class="session-mode hidden">
+            <div class="flashcard" id="flashcard">
+              <div class="flashcard-front">
+                <div class="card-label">Chinese</div>
+                <div class="card-text" id="flash-chinese"></div>
+                <div class="card-hint">Tap to reveal</div>
+              </div>
+              <div class="flashcard-back hidden" id="flashcard-back">
+                <div class="card-label">English</div>
+                <div class="card-text card-english" id="flash-english"></div>
+                <button class="btn btn-text" id="flash-speak-btn">🔊 Listen</button>
+              </div>
+            </div>
+            <div class="eval-buttons hidden" id="flash-eval">
+              <button class="btn btn-eval btn-forgot" data-result="forgot">Don't know</button>
+              <button class="btn btn-eval btn-ok" data-result="ok">Almost</button>
+              <button class="btn btn-eval btn-good" data-result="good">Got it!</button>
+            </div>
+          </div>
+
+          <!-- Spelling Mode -->
+          <div id="session-spelling" class="session-mode hidden">
+            <div class="spelling-card">
+              <div class="card-label">Chinese</div>
+              <div class="card-text" id="spell-chinese"></div>
+            </div>
+            <div class="spelling-input-area">
+              <textarea id="spell-input" rows="2" placeholder="Type the English sentence..."></textarea>
+              <button class="btn btn-primary btn-full" id="spell-check-btn">Check</button>
+            </div>
+            <div id="spell-result" class="spell-result hidden">
+              <div class="spell-answer">
+                <div class="card-label">Correct Answer</div>
+                <div class="card-text card-english" id="spell-answer-text"></div>
+                <button class="btn btn-text" id="spell-speak-btn">🔊 Listen</button>
+              </div>
+              <div class="eval-buttons">
+                <button class="btn btn-eval btn-forgot" data-result="forgot">Wrong</button>
+                <button class="btn btn-eval btn-ok" data-result="ok">Close enough</button>
+                <button class="btn btn-eval btn-good" data-result="good">Correct!</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reading Mode -->
+          <div id="session-reading" class="session-mode hidden">
+            <div class="reading-card">
+              <div class="card-label">Listen and Repeat</div>
+              <div class="card-text card-english" id="read-english"></div>
+              <div class="reading-controls">
+                <button class="btn btn-primary" id="read-play-btn">🔊 Play</button>
+                <button class="btn btn-outline" id="read-slow-btn">🐢 Slow</button>
+              </div>
+              <div class="card-label" style="margin-top:16px">Chinese</div>
+              <div class="card-text" id="read-chinese" style="font-size:14px;color:var(--text-secondary)"></div>
+            </div>
+            <div class="eval-buttons">
+              <button class="btn btn-eval btn-forgot" data-result="forgot">Couldn't say it</button>
+              <button class="btn btn-eval btn-ok" data-result="ok">Partially</button>
+              <button class="btn btn-eval btn-good" data-result="good">Nailed it!</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Training: Summary -->
+        <div id="page-summary" class="page hidden">
+          <div class="summary-container">
+            <div class="summary-icon">🎉</div>
+            <h2>Session Complete!</h2>
+            <div class="summary-stats">
+              <div class="summary-stat">
+                <span class="stat-num" id="sum-total">0</span>
+                <span class="stat-label">Sentences</span>
+              </div>
+              <div class="summary-stat good">
+                <span class="stat-num" id="sum-good">0</span>
+                <span class="stat-label">Got it</span>
+              </div>
+              <div class="summary-stat ok">
+                <span class="stat-num" id="sum-ok">0</span>
+                <span class="stat-label">Almost</span>
+              </div>
+              <div class="summary-stat forgot">
+                <span class="stat-num" id="sum-forgot">0</span>
+                <span class="stat-label">Forgot</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" id="summary-done-btn">Back to Home</button>
+          </div>
+        </div>
+
+        <!-- Add Mode -->
+        <div id="page-add" class="page hidden">
+          <div class="page-header">
+            <button class="btn-back" id="add-back-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h2>Add Sentence</h2>
+          </div>
+
+          <!-- Input mode toggle -->
+          <div class="input-toggle">
+            <button class="toggle-btn active" data-input="chinese">Input Chinese</button>
+            <button class="toggle-btn" data-input="english">Input English</button>
+          </div>
+
+          <!-- Input area -->
+          <div class="add-input-area">
+            <textarea id="add-input" rows="3" placeholder="輸入中文句子..."></textarea>
+            <button class="btn btn-primary btn-full" id="generate-btn">Generate English Options</button>
+          </div>
+
+          <!-- Loading -->
+          <div id="generate-loading" class="generate-loading hidden">
+            <div class="spinner-small"></div>
+            <span>Generating with Gemini AI...</span>
+          </div>
+
+          <!-- Options -->
+          <div id="options-area" class="options-area hidden">
+            <h3 class="options-title">Select the best translation:</h3>
+            <div id="options-list" class="options-list"></div>
+          </div>
+
+          <!-- Save confirmation -->
+          <div id="save-area" class="save-area hidden">
+            <div class="save-preview">
+              <div class="save-label">Chinese</div>
+              <div id="save-chinese" class="save-text"></div>
+              <div class="save-label">English</div>
+              <div id="save-english" class="save-text save-english"></div>
+              <button class="btn btn-text" id="play-preview-btn">🔊 Preview</button>
+            </div>
+            <button class="btn btn-primary btn-full" id="save-sentence-btn">Save to Library</button>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div id="page-settings" class="page hidden">
+          <div class="page-header">
+            <button class="btn-back" id="settings-back-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h2>Settings</h2>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="section-title">AI API Key</h3>
+            <p class="section-desc">Enter your Google Gemini API Key. It will be encrypted and synced across your devices.</p>
+            <div class="form-group">
+              <label for="api-key-input">Gemini API Key</label>
+              <div class="input-row">
+                <input type="password" id="api-key-input" placeholder="Enter your API key" autocomplete="off" data-lpignore="true" data-form-type="other">
+                <button type="button" id="toggle-api-key" class="btn-icon" title="Toggle visibility">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="api-key-status" id="api-key-status"></div>
+            </div>
+            <button class="btn btn-primary" id="save-api-key-btn">Save API Key</button>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="section-title">Sync</h3>
+            <p class="section-desc">Sync your data with Google Sheet for cross-device access.</p>
+            <div class="sync-status">
+              <span class="sync-label">Last synced:</span>
+              <span id="last-sync-time">Never</span>
+            </div>
+            <button class="btn btn-outline" id="manual-sync-btn">Sync Now</button>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="section-title">TTS Voice</h3>
+            <p class="section-desc">Select the voice for English sentence playback.</p>
+            <div class="form-group">
+              <label for="tts-voice-select">Voice</label>
+              <select id="tts-voice-select"></select>
+            </div>
+            <div class="form-group">
+              <label for="tts-rate-range">Speed: <span id="tts-rate-value">1.0</span>x</label>
+              <input type="range" id="tts-rate-range" min="0.5" max="1.5" step="0.1" value="1.0">
+            </div>
+            <button class="btn btn-text" id="tts-test-btn">Test Voice</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="js/app.js?v=1"></script>
+</body>
+</html>
