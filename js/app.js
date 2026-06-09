@@ -579,7 +579,7 @@
   // ===== ADD MODE =====
   let addInputMode = 'chinese'; // 'chinese' or 'english'
   let generatedOptions = [];
-  let selectedOption = null;
+  let selectedOptions = [];
   let addOriginalInput = '';
 
   function setupAddModeListeners() {
@@ -605,18 +605,12 @@
     document.getElementById('generate-btn').addEventListener('click', generateOptions);
 
     // Save button
-    document.getElementById('save-sentence-btn').addEventListener('click', saveSentence);
-
-    // Preview TTS
-    document.getElementById('play-preview-btn').addEventListener('click', function () {
-      var text = document.getElementById('save-english').textContent;
-      if (text) speak(text);
-    });
+    document.getElementById('save-sentence-btn').addEventListener('click', saveSentences);
   }
 
   function resetAddMode() {
     generatedOptions = [];
-    selectedOption = null;
+    selectedOptions = [];
     addOriginalInput = '';
     document.getElementById('add-input').value = '';
     document.getElementById('options-area').classList.add('hidden');
@@ -694,6 +688,7 @@
 
   function parseAndShowOptions(result) {
     generatedOptions = [];
+    selectedOptions = [];
     var listEl = document.getElementById('options-list');
     listEl.innerHTML = '';
 
@@ -718,7 +713,7 @@
       card.className = 'option-card';
       card.innerHTML = '<div class="option-badge">' + opt.label + '</div><div>' + escapeHtml(opt.text) + '</div>';
       card.addEventListener('click', function () {
-        selectOption(i);
+        toggleOption(i);
       });
       listEl.appendChild(card);
     });
@@ -726,76 +721,146 @@
     document.getElementById('options-area').classList.remove('hidden');
   }
 
-  function selectOption(index) {
-    selectedOption = generatedOptions[index];
+  function toggleOption(index) {
+    var idx = selectedOptions.indexOf(index);
+    if (idx === -1) {
+      selectedOptions.push(index);
+    } else {
+      selectedOptions.splice(idx, 1);
+    }
 
     // Update visual selection
     document.querySelectorAll('.option-card').forEach(function (card, i) {
-      card.classList.toggle('selected', i === index);
+      card.classList.toggle('selected', selectedOptions.indexOf(i) !== -1);
     });
 
-    // Show save area
-    var chinese, english;
-    if (addInputMode === 'chinese') {
-      chinese = addOriginalInput;
-      english = selectedOption.text;
-    } else {
-      chinese = addOriginalInput;
-      english = selectedOption.text;
-    }
-
-    document.getElementById('save-chinese').textContent = chinese;
-    document.getElementById('save-english').textContent = english;
-    document.getElementById('save-area').classList.remove('hidden');
+    updateSaveArea();
   }
 
-  async function saveSentence() {
-    if (!selectedOption) return;
+  function updateSaveArea() {
+    var saveArea = document.getElementById('save-area');
+    if (selectedOptions.length === 0) {
+      saveArea.classList.add('hidden');
+      return;
+    }
 
-    var chinese = document.getElementById('save-chinese').textContent;
-    var english = document.getElementById('save-english').textContent;
+    saveArea.classList.remove('hidden');
+    document.getElementById('save-loading').classList.add('hidden');
+
+    var countEl = document.getElementById('save-count');
+    countEl.textContent = selectedOptions.length + ' sentence' + (selectedOptions.length > 1 ? 's' : '') + ' selected';
+
+    var listEl = document.getElementById('save-selected-list');
+    listEl.innerHTML = '';
+
+    selectedOptions.forEach(function (optIdx) {
+      var opt = generatedOptions[optIdx];
+      var item = document.createElement('div');
+      item.className = 'save-item';
+      item.innerHTML = '<div class="save-item-english">' + escapeHtml(opt.text) + '</div>' +
+        '<button class="btn-icon save-item-play" title="Preview">🔊</button>';
+      item.querySelector('.save-item-play').addEventListener('click', function (e) {
+        e.stopPropagation();
+        speak(opt.text);
+      });
+      listEl.appendChild(item);
+    });
 
     var btn = document.getElementById('save-sentence-btn');
-    btn.textContent = 'Saving...';
-    btn.disabled = true;
+    btn.textContent = 'Save ' + selectedOptions.length + ' Sentence' + (selectedOptions.length > 1 ? 's' : '') + ' to Library';
+  }
+
+  async function generateChineseMeanings(englishSentences, originalInput) {
+    var prompt;
+    if (addInputMode === 'chinese') {
+      prompt = 'You are a translation assistant. The user originally wrote this Chinese: "' + originalInput + '"\n' +
+        'Below are English sentences derived from that input. Each may emphasize different nuances.\n' +
+        'For each English sentence, provide a natural Chinese translation that accurately reflects its specific meaning. ' +
+        'The Chinese may differ from the original input to better match each sentence.\n\n';
+    } else {
+      prompt = 'You are a translation assistant. The user originally wrote this English: "' + originalInput + '"\n' +
+        'Below are improved/alternative English sentences.\n' +
+        'For each, provide a natural Chinese translation that accurately reflects its specific meaning.\n\n';
+    }
+
+    englishSentences.forEach(function (s, i) {
+      prompt += (i + 1) + '. ' + s + '\n';
+    });
+
+    prompt += '\nReturn ONLY a JSON array of Chinese strings in the same order. No explanation.';
 
     try {
-      // Save to Google Sheet
-      var resp = await gasRequest({
-        action: 'addSentence',
-        user: currentUser,
-        chinese: chinese,
-        english: english
-      });
-
-      if (resp.success) {
-        // Also save locally
-        var id = resp.id;
-        var today = getTodayStr();
-        sentences[id] = {
-          chinese: chinese,
-          english: english,
-          driveFileId: '',
-          createdAt: today,
-          lastReview: '',
-          nextReview: today,
-          level: 0,
-          correct: 0,
-          incorrect: 0,
-          easeFactor: 2.5
-        };
-        saveLocalData();
-
-        showToast('Sentence saved!');
-        resetAddMode();
-      } else {
-        showToast('Save failed: ' + (resp.error || 'Unknown error'));
+      var result = await callGemini(prompt);
+      if (Array.isArray(result) && result.length === englishSentences.length) {
+        return result;
       }
     } catch (err) {
-      showToast('Network error: ' + err.message);
+      console.error('Chinese generation failed, using original input:', err);
+    }
+
+    // Fallback: use original input for all
+    return englishSentences.map(function () { return originalInput; });
+  }
+
+  async function saveSentences() {
+    if (selectedOptions.length === 0) return;
+
+    var btn = document.getElementById('save-sentence-btn');
+    var loadingEl = document.getElementById('save-loading');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+    loadingEl.classList.remove('hidden');
+
+    try {
+      // Collect selected English sentences
+      var selectedSentences = selectedOptions.map(function (idx) {
+        return generatedOptions[idx].text;
+      });
+
+      // Call AI to generate appropriate Chinese for each selected sentence
+      var chineseMeanings = await generateChineseMeanings(selectedSentences, addOriginalInput);
+
+      // Save each sentence independently to Google Sheet
+      var savedCount = 0;
+      for (var i = 0; i < selectedSentences.length; i++) {
+        var english = selectedSentences[i];
+        var chinese = chineseMeanings[i] || addOriginalInput;
+
+        var resp = await gasRequest({
+          action: 'addSentence',
+          user: currentUser,
+          chinese: chinese,
+          english: english
+        });
+
+        if (resp.success) {
+          var id = resp.id;
+          var today = getTodayStr();
+          sentences[id] = {
+            chinese: chinese,
+            english: english,
+            driveFileId: '',
+            createdAt: today,
+            lastReview: '',
+            nextReview: today,
+            level: 0,
+            correct: 0,
+            incorrect: 0,
+            easeFactor: 2.5
+          };
+          savedCount++;
+        }
+      }
+
+      saveLocalData();
+      showToast(savedCount + ' sentence' + (savedCount > 1 ? 's' : '') + ' saved!');
+      resetAddMode();
+    } catch (err) {
+      showToast('Save failed: ' + err.message);
     } finally {
-      btn.textContent = 'Save to Library';
       btn.disabled = false;
+      loadingEl.classList.add('hidden');
+      btn.textContent = 'Save to Library';
     }
   }
 

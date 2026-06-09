@@ -247,18 +247,19 @@
 
           <!-- Options -->
           <div id="options-area" class="options-area hidden">
-            <h3 class="options-title">Select the best translation:</h3>
+            <h3 class="options-title">Select sentences to add <span class="multi-hint">(可多選)</span></h3>
             <div id="options-list" class="options-list"></div>
           </div>
 
-          <!-- Save confirmation -->
+          <!-- Save confirmation (multi-select) -->
           <div id="save-area" class="save-area hidden">
             <div class="save-preview">
-              <div class="save-label">Chinese</div>
-              <div id="save-chinese" class="save-text"></div>
-              <div class="save-label">English</div>
-              <div id="save-english" class="save-text save-english"></div>
-              <button class="btn btn-text" id="play-preview-btn">🔊 Preview</button>
+              <div class="save-count" id="save-count"></div>
+              <div id="save-selected-list" class="save-selected-list"></div>
+            </div>
+            <div id="save-loading" class="generate-loading hidden">
+              <div class="spinner-small"></div>
+              <span>AI is refining Chinese meanings...</span>
             </div>
             <button class="btn btn-primary btn-full" id="save-sentence-btn">Save to Library</button>
           </div>

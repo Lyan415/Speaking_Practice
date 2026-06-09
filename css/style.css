@@ -763,6 +763,8 @@ body {
   border: 2px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 16px;
+  padding-right: 44px;
+  position: relative;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
   font-size: 15px;
@@ -777,6 +779,22 @@ body {
   border-color: var(--primary);
   background: rgba(79,70,229,0.04);
   box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+
+.option-card.selected::after {
+  content: '✓';
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 22px;
+  height: 22px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 22px;
 }
 
 .option-badge {
@@ -820,6 +838,42 @@ body {
 .save-english {
   color: var(--primary-dark);
   font-weight: 500;
+}
+
+.save-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.save-selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.save-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.save-item-english {
+  flex: 1;
+  font-size: 14px;
+  color: var(--primary-dark);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.multi-hint {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 /* ===== SETTINGS ===== */
